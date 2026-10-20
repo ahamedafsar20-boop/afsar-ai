@@ -10,14 +10,18 @@ def home():
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    raw_data = request.get_data(as_text=True) or ""
+
     try:
-        raw_data = request.get_data(as_text=True)
-        data = json.loads(raw_data) if raw_data else {}
-        message = data.get("message", "")
-        return jsonify({"reply": "You said: " + str(message)})
-    except Exception:
-        return jsonify({"reply": "Message received"}), 200
+        data = json.loads(raw_data)
+        if isinstance(data, dict):
+            message = data.get("message", "")
+        else:
+            message = raw_data
+    except (json.JSONDecodeError, ValueError):
+        message = raw_data
+
+    return jsonify({"reply": "You said: " + str(message)})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
-    
